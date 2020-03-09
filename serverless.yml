@@ -28,7 +28,7 @@ provider:
      Action:
        - "s3:GetObject"
        - "s3:HeadObject"
-     Resource:       
+     Resource:
        - "arn:aws:s3:::*"
 
 package:
@@ -49,6 +49,7 @@ functions:
       GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
       GDAL_HTTP_MULTIPLEX: YES
       GDAL_HTTP_VERSION: 2
+      IMG_TTL: ${opt:img-ttl, ''}
       MAX_THREADS: 10
       MOSAIC_DEF_BUCKET: ${opt:bucket}
       PROJ_LIB: /opt/share/proj

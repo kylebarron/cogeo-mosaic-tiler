@@ -494,6 +494,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>",
@@ -502,6 +503,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
@@ -510,6 +512,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>@<int:scale>x",
@@ -518,6 +521,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>.<ext>",
@@ -526,6 +530,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>",
@@ -534,6 +539,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
@@ -542,6 +548,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 @app.route(
     "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>@<int:scale>x",
@@ -550,6 +557,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    ttl=os.getenv("IMG_TTL"),
 )
 def _img(
     mosaicid: str = None,

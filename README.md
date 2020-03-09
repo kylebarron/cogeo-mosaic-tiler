@@ -25,14 +25,14 @@ This project uses [Serverless](https://serverless.com) to manage deploy on AWS.
 
 ```bash
 # Install and Configure serverless (https://serverless.com/framework/docs/providers/aws/guide/credentials/)
-$ npm install serverless -g 
+$ npm install serverless -g
 
-$ sls deploy --region us-east-1 --bucket a-bucket-where-you-store-data
+$ sls deploy --region us-east-1 --bucket a-bucket-where-you-store-data --img-ttl 3600
 ```
 
 #### Docs
 
-See [/doc/API.md](/doc/API.md) for the documentation. 
+See [/doc/API.md](/doc/API.md) for the documentation.
 
 #### Live
 
