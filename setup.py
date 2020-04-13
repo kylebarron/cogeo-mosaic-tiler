@@ -10,7 +10,7 @@ inst_reqs = [
     "requests",
     "rio-cogeo",
     "rio-color",
-    "rio-tiler",
+    "rio-tiler>=2.0a4",
     "rio_tiler_mosaic",
     "rio_tiler_mvt",
 ]
