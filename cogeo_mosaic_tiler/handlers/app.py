@@ -362,16 +362,7 @@ def _wmts(
     binary_b64encode=True,
     tag=["tiles"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>.pbf",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
 def _mvt(
-    mosaicid: str = None,
     z: int = None,
     x: int = None,
     y: int = None,
@@ -382,12 +373,12 @@ def _mvt(
     resampling_method: str = "nearest",
 ) -> Tuple[str, str, BinaryIO]:
     """Handle MVT requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    assets = fetch_and_find_assets(url, x, y, z)
+    with auto_backend(url) as mosaic:
+        assets = mosaic.tile(x, y, z)
+
     if not assets:
         return ("EMPTY", "text/plain", f"No assets found for tile {z}-{x}-{y}")
 
