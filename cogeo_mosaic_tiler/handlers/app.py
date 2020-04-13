@@ -31,8 +31,6 @@ from cogeo_mosaic import version as mosaic_version
 from cogeo_mosaic.utils import (
     create_mosaic,
     fetch_mosaic_definition,
-    fetch_and_find_assets,
-    fetch_and_find_assets_point,
     get_point_values,
 )
 from cogeo_mosaic.backends import auto_backend
