@@ -30,7 +30,7 @@ provider:
      Action:
        - "s3:GetObject"
        - "s3:HeadObject"
-     Resource:       
+     Resource:
        - "arn:aws:s3:::*"
 
 package:
@@ -44,6 +44,7 @@ functions:
     layers:
       - arn:aws:lambda:${self:provider.region}:524387336408:layer:gdal24-py37-cogeo:6
     environment:
+      CACHE_CONTROL: ${opt:cache-control, 'max-age=3600'}
       CPL_TMPDIR: /tmp
       GDAL_CACHEMAX: 25%
       GDAL_DATA: /opt/share/gdal

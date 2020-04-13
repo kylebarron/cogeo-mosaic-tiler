@@ -156,6 +156,7 @@ def _add(body: str, url: str, mosaicid: str = None) -> Tuple[str, str, str]:
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["metadata"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _info(url: str = None) -> Tuple[str, str, str]:
     """Handle /info requests."""
@@ -208,6 +209,7 @@ def _info(url: str = None) -> Tuple[str, str, str]:
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["metadata"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _geojson(url: str = None) -> Tuple[str, str, str]:
     """Handle /geojson requests."""
@@ -238,6 +240,7 @@ def _geojson(url: str = None) -> Tuple[str, str, str]:
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _tilejson(
     url: str = None, tile_scale: int = 1, tile_format: str = None, **kwargs: Any,
@@ -293,6 +296,7 @@ def get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs):
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _wmts(
     url: str = None,
@@ -342,6 +346,7 @@ def _wmts(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _mvt(
     z: int = None,
@@ -437,6 +442,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>",
@@ -445,6 +451,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
@@ -453,6 +460,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 @app.route(
     "/<int:z>/<int:x>/<int:y>@<int:scale>x",
@@ -461,6 +469,7 @@ def _postprocess(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _img(
     z: int = None,
@@ -548,6 +557,7 @@ def _img(
     payload_compression_method="gzip",
     binary_b64encode=True,
     tag=["tiles"],
+    cache_control=os.getenv("CACHE_CONTROL", None),
 )
 def _point(
     lng: float = None, lat: float = None, url: str = None
