@@ -232,22 +232,17 @@ def _info(url: str = None) -> Tuple[str, str, str]:
     binary_b64encode=True,
     tag=["metadata"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/geojson",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["metadata"],
-)
-def _geojson(mosaicid: str = None, url: str = None) -> Tuple[str, str, str]:
+def _geojson(url: str = None) -> Tuple[str, str, str]:
     """Handle /geojson requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    mosaic_def = fetch_mosaic_definition(url)
+    with auto_backend(url) as mosaic:
+        mosaic_def = dict(mosaic.mosaic_def)
+
+    if not mosaic_def.get("tiles"):
+        return ("NOK", "text/plain", "Backend does not support listing quadkeys")
+
     geojson = {
         "type": "FeatureCollection",
         "features": [
