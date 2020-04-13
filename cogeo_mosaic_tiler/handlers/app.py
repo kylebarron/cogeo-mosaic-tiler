@@ -263,10 +263,7 @@ def _geojson(url: str = None) -> Tuple[str, str, str]:
     tag=["tiles"],
 )
 def _tilejson(
-    url: str = None,
-    tile_scale: int = 1,
-    tile_format: str = None,
-    **kwargs: Any,
+    url: str = None, tile_scale: int = 1, tile_format: str = None, **kwargs: Any,
 ) -> Tuple[str, str, str]:
     """Handle /tilejson.json requests."""
     if url is None:
@@ -282,7 +279,7 @@ def _tilejson(
         mosaic_def["minzoom"],
     ]
 
-    kwargs.update({'url': url})
+    kwargs.update({"url": url})
     host = app.host
 
     if tile_format in ["pbf", "mvt"]:
@@ -316,16 +313,7 @@ def _tilejson(
     binary_b64encode=True,
     tag=["tiles"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/wmts",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
 def _wmts(
-    mosaicid: str = None,
     url: str = None,
     tile_format: str = "png",
     tile_scale: int = 1,
@@ -333,19 +321,18 @@ def _wmts(
     **kwargs: Any,
 ) -> Tuple[str, str, str]:
     """Handle /wmts requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
     if tile_scale is not None and isinstance(tile_scale, str):
         tile_scale = int(tile_scale)
 
-    mosaic_def = fetch_mosaic_definition(url)
+    with auto_backend(url) as mosaic:
+        mosaic_def = dict(mosaic.mosaic_def)
 
     kwargs.pop("SERVICE", None)
     kwargs.pop("REQUEST", None)
-    kwargs.update(dict(url=url))
+    kwargs.update({"url": url})
     query_string = urllib.parse.urlencode(list(kwargs.items()))
     query_string = query_string.replace(
         "&", "&amp;"
