@@ -152,21 +152,21 @@ def _create(
     binary_b64encode=True,
     tag=["mosaic"],
 )
-def _add(body: str, mosaicid: str = None) -> Tuple[str, str, str]:
+def _add(body: str, url: str, mosaicid: str = None) -> Tuple[str, str, str]:
     # TODO: Need validation
     mosaic_definition = json.loads(body)
 
-    if not mosaicid:
+    if not mosaicid and "{mosaicid}" in url:
         mosaicid = get_hash(body=body)
+        url = url.replace("{mosaicid}", mosaicid)
 
-    key = f"mosaics/{mosaicid}.json.gz"
-    bucket = os.environ["MOSAIC_DEF_BUCKET"]
-    _aws_put_data(key, bucket, _compress_gz_json(mosaic_definition), client=s3_client)
+    with auto_backend(url, mosaic_def=mosaic_definition) as mosaic:
+        mosaic.upload()
 
     return (
         "OK",
         "application/json",
-        json.dumps({"id": mosaicid, "url": f"s3://{bucket}/{key}"}),
+        json.dumps({"id": mosaicid, "url": url}),
     )
 
 
