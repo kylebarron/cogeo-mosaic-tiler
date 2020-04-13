@@ -4,7 +4,16 @@ from setuptools import setup, find_packages
 
 
 # Runtime requirements.
-inst_reqs = ["cogeo-mosaic>=2.0.1", "rio-color", "rio_tiler_mvt", "lambda-proxy~=5.0"]
+inst_reqs = [
+    "cogeo-mosaic>=2.0.1",
+    "lambda-proxy~=5.0",
+    "requests",
+    "rio-cogeo",
+    "rio-color",
+    "rio-tiler",
+    "rio_tiler_mosaic",
+    "rio_tiler_mvt",
+]
 extra_reqs = {
     "test": ["pytest", "pytest-cov", "mock"],
     "dev": ["pytest", "pytest-cov", "pre-commit", "mock"],
