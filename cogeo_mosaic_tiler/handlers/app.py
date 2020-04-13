@@ -481,40 +481,7 @@ def _postprocess(
     binary_b64encode=True,
     tag=["tiles"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>.<ext>",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/<int:z>/<int:x>/<int:y>@<int:scale>x",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
 def _img(
-    mosaicid: str = None,
     z: int = None,
     x: int = None,
     y: int = None,
@@ -529,12 +496,12 @@ def _img(
     resampling_method: str = "nearest",
 ) -> Tuple[str, str, BinaryIO]:
     """Handle tile requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    assets = fetch_and_find_assets(url, x, y, z)
+    with auto_backend(url) as mosaic:
+        assets = mosaic.tile(x, y, z)
+
     if not assets:
         return ("EMPTY", "text/plain", f"No assets found for tile {z}-{x}-{y}")
 
@@ -601,21 +568,11 @@ def _img(
     binary_b64encode=True,
     tag=["tiles"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/point",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
 def _point(
-    mosaicid: str = None, lng: float = None, lat: float = None, url: str = None
+    lng: float = None, lat: float = None, url: str = None
 ) -> Tuple[str, str, str]:
     """Handle point requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
     if not lat or not lng:
@@ -627,7 +584,9 @@ def _point(
     if isinstance(lat, str):
         lat = float(lat)
 
-    assets = fetch_and_find_assets_point(url, lng, lat)
+    with auto_backend(url) as mosaic:
+        assets = mosaic.point(lng, lat)
+
     if not assets:
         return ("EMPTY", "text/plain", f"No assets found for lat/lng ({lat}, {lng})")
 
