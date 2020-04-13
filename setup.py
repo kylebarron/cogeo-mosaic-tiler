@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 # Runtime requirements.
 inst_reqs = [
     "cogeo-mosaic>=2.0.1",
-    "lambda-proxy~=5.0",
+    "lambda-proxy~=5.2",
     "requests",
     "rio-cogeo",
     "rio-color",
