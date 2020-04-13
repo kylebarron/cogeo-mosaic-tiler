@@ -262,28 +262,18 @@ def _geojson(url: str = None) -> Tuple[str, str, str]:
     binary_b64encode=True,
     tag=["tiles"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/tilejson.json",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["tiles"],
-)
 def _tilejson(
-    mosaicid: str = None,
     url: str = None,
     tile_scale: int = 1,
     tile_format: str = None,
     **kwargs: Any,
 ) -> Tuple[str, str, str]:
     """Handle /tilejson.json requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    mosaic_def = fetch_mosaic_definition(url)
+    with auto_backend(url) as mosaic:
+        mosaic_def = dict(mosaic.mosaic_def)
 
     bounds = mosaic_def["bounds"]
     center = [
@@ -291,11 +281,9 @@ def _tilejson(
         (bounds[1] + bounds[3]) / 2,
         mosaic_def["minzoom"],
     ]
-    if not mosaicid:
-        kwargs.update(dict(url=url))
-        host = app.host
-    else:
-        host = f"{app.host}/{mosaicid}"
+
+    kwargs.update({'url': url})
+    host = app.host
 
     if tile_format in ["pbf", "mvt"]:
         tile_url = f"{host}/{{z}}/{{x}}/{{y}}.{tile_format}"
