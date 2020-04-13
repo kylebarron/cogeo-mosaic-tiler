@@ -35,6 +35,7 @@ from cogeo_mosaic.utils import (
     fetch_and_find_assets_point,
     get_point_values,
 )
+from cogeo_mosaic.backends import auto_backend
 
 from cogeo_mosaic_tiler import custom_methods
 from cogeo_mosaic_tiler.custom_cmaps import get_custom_cmap
@@ -179,22 +180,13 @@ def _add(body: str, mosaicid: str = None) -> Tuple[str, str, str]:
     binary_b64encode=True,
     tag=["metadata"],
 )
-@app.route(
-    "/<regex([0-9A-Fa-f]{56}):mosaicid>/info",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-    tag=["metadata"],
-)
-def _info(mosaicid: str = None, url: str = None) -> Tuple[str, str, str]:
+def _info(url: str = None) -> Tuple[str, str, str]:
     """Handle /info requests."""
-    if mosaicid:
-        url = _create_path(mosaicid)
-    elif url is None:
+    if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    mosaic_def = fetch_mosaic_definition(url)
+    with auto_backend(url) as mosaic:
+        mosaic_def = dict(mosaic.mosaic_def)
 
     bounds = mosaic_def["bounds"]
     center = [
@@ -202,24 +194,33 @@ def _info(mosaicid: str = None, url: str = None) -> Tuple[str, str, str]:
         (bounds[1] + bounds[3]) / 2,
         mosaic_def["minzoom"],
     ]
-    quadkeys = list(mosaic_def["tiles"].keys())
 
-    # read layernames from the first file
-    src_path = mosaic_def["tiles"][quadkeys[0]][0]
-    with rasterio.open(src_path) as src_dst:
-        layer_names = _get_layer_names(src_dst)
-        dtype = src_dst.dtypes[0]
+    quadkeys = None
+    layer_names = None
+    dtype = None
+    if mosaic_def.get("tiles"):
+        quadkeys = list(mosaic_def["tiles"].keys())
+
+        # read layernames from the first file
+        src_path = mosaic_def["tiles"][quadkeys[0]][0]
+        with rasterio.open(src_path) as src_dst:
+            layer_names = _get_layer_names(src_dst)
+            dtype = src_dst.dtypes[0]
 
     meta = {
         "bounds": bounds,
         "center": center,
         "maxzoom": mosaic_def["maxzoom"],
         "minzoom": mosaic_def["minzoom"],
-        "name": mosaicid if mosaicid else url,
-        "quadkeys": quadkeys,
-        "layers": layer_names,
-        "dtype": dtype,
+        "name": url,
     }
+    if quadkeys:
+        meta["quadkeys"] = quadkeys
+    if layer_names:
+        meta["layers"] = layer_names
+    if dtype:
+        meta["dtype"] = dtype
+
     return ("OK", "application/json", json.dumps(meta))
 
 
