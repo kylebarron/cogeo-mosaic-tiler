@@ -30,7 +30,6 @@ from rio_tiler_mosaic.methods import defaults
 from cogeo_mosaic import version as mosaic_version
 from cogeo_mosaic.utils import (
     create_mosaic,
-    fetch_mosaic_definition,
     get_point_values,
 )
 from cogeo_mosaic.backends import auto_backend
@@ -38,17 +37,11 @@ from cogeo_mosaic.backends import auto_backend
 from cogeo_mosaic_tiler import custom_methods
 from cogeo_mosaic_tiler.custom_cmaps import get_custom_cmap
 from cogeo_mosaic_tiler.ogc import wmts_template
-from cogeo_mosaic_tiler.utils import (
-    _aws_put_data,
-    _create_path,
-    _compress_gz_json,
-    get_hash,
-)
+from cogeo_mosaic_tiler.utils import get_hash
 
 from lambda_proxy.proxy import API
 
 session = boto3_session()
-s3_client = session.client("s3")
 aws_session = AWSSession(session=session)
 
 PIXSEL_METHODS = {
@@ -83,6 +76,7 @@ def _get_layer_names(src_dst):
 )
 def _create(
     body: str,
+    url: str,
     minzoom: Union[str, int] = None,
     maxzoom: Union[str, int] = None,
     min_tile_cover: Union[str, float] = None,
@@ -99,49 +93,33 @@ def _create(
 
     mosaicid = get_hash(body=body, version=mosaic_version)
 
+    if "{mosaicid}" in url:
+        url = url.replace("{mosaicid}", mosaicid)
+
+    # Load mosaic if it already exists
     try:
-        mosaic_definition = fetch_mosaic_definition(_create_path(mosaicid))
-    except ClientError:
-        body = json.loads(body)
-        with rasterio.Env(aws_session):
-            mosaic_definition = create_mosaic(
-                body,
-                minzoom=minzoom,
-                maxzoom=maxzoom,
-                minimum_tile_cover=min_tile_cover,
-                tile_cover_sort=tile_cover_sort,
-            )
+        with auto_backend(url) as mosaic:
+            mosaic_def = dict(mosaic.mosaic_def)
 
-            key = f"mosaics/{mosaicid}.json.gz"
-            bucket = os.environ["MOSAIC_DEF_BUCKET"]
-            _aws_put_data(
-                key, bucket, _compress_gz_json(mosaic_definition), client=s3_client
-            )
+        return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
 
-    if tile_format in ["pbf", "mvt"]:
-        tile_url = f"{app.host}/{mosaicid}/{{z}}/{{x}}/{{y}}.{tile_format}"
-    elif tile_format in ["png", "jpg", "webp", "tif", "npy"]:
-        tile_url = (
-            f"{app.host}/{mosaicid}/{{z}}/{{x}}/{{y}}@{tile_scale}x.{tile_format}"
+    except Exception:
+        pass
+
+    assets = json.loads(body)
+    with rasterio.Env(aws_session):
+        mosaic_def = create_mosaic(
+            assets,
+            minzoom=minzoom,
+            maxzoom=maxzoom,
+            minimum_tile_cover=min_tile_cover,
+            tile_cover_sort=tile_cover_sort,
         )
-    else:
-        tile_url = f"{app.host}/{mosaicid}/{{z}}/{{x}}/{{y}}@{tile_scale}x"
 
-    qs = urllib.parse.urlencode(list(kwargs.items()))
-    if qs:
-        tile_url += f"?{qs}"
+    with auto_backend(url, mosaic_def=mosaic_def) as mosaic:
+        mosaic.upload()
 
-    meta = {
-        "bounds": mosaic_definition["bounds"],
-        "center": mosaic_definition["center"],
-        "maxzoom": mosaic_definition["maxzoom"],
-        "minzoom": mosaic_definition["minzoom"],
-        "name": mosaicid,
-        "tilejson": "2.1.0",
-        "tiles": [tile_url],
-    }
-
-    return ("OK", "application/json", json.dumps(meta))
+    return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
 
 
 @app.route(
@@ -156,6 +134,7 @@ def _add(body: str, url: str, mosaicid: str = None) -> Tuple[str, str, str]:
     # TODO: Need validation
     mosaic_definition = json.loads(body)
 
+    # Replace {mosaicid} template in url with actual mosaicid
     if not mosaicid and "{mosaicid}" in url:
         mosaicid = get_hash(body=body)
         url = url.replace("{mosaicid}", mosaicid)
@@ -270,6 +249,10 @@ def _tilejson(
     with auto_backend(url) as mosaic:
         mosaic_def = dict(mosaic.mosaic_def)
 
+    return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
+
+
+def get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs):
     bounds = mosaic_def["bounds"]
     center = [
         (bounds[0] + bounds[2]) / 2,
