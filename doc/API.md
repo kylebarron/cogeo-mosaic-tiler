@@ -19,7 +19,7 @@ For example:
 - HTTP:
     - `https://{endpoint-url}/{method}?url=http(s)://example.com/path/to/mosaic`
 - DynamoDB. If you don't pass a region, the local region is assumed. Note that if you don't pass a region you need _three_ `///`.
-    - `https://{endpoint-url}/{method}?url=dynamodb://{region}/{mosaicid}`
+    - `https://{endpoint-url}/{method}?url=dynamodb://{AWS region}/{mosaicid}`
     - `https://{endpoint-url}/{method}?url=dynamodb:///{mosaicid}`
 -  Local file. Note if you pass `file:///` you need _three_ `///`.
     - `https://{endpoint-url}/{method}?url=file:///path/to/local/file`
