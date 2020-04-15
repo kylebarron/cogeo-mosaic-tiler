@@ -12,11 +12,11 @@ inst_reqs = [
     "rio-color",
     "rio-tiler>=2.0a4",
     "rio_tiler_mosaic",
-    "rio_tiler_mvt",
 ]
 extra_reqs = {
-    "test": ["pytest", "pytest-cov", "mock"],
     "dev": ["pytest", "pytest-cov", "pre-commit", "mock"],
+    "mvt": ["rio-tiler-mvt"],
+    "test": ["pytest", "pytest-cov", "mock"],
 }
 
 setup(
