@@ -1,4 +1,4 @@
-FROM lambgeo/lambda:gdal2.4-py3.7
+FROM lambgeo/lambda:gdal2.4-py3.7-geolayer
 
 WORKDIR /tmp
 
