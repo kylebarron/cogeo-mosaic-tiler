@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 # Runtime requirements.
 inst_reqs = [
-    "cogeo-mosaic @ git+https://github.com/kylebarron/cogeo-mosaic@mosaic-abc#egg=cogeo-mosaic",
+    "cogeo-mosaic @ git+https://github.com/developmentseed/cogeo-mosaic@vsEdits#egg=cogeo-mosaic",
     "lambda-proxy~=5.2",
     "requests",
     "rio-cogeo",

@@ -32,7 +32,7 @@ from cogeo_mosaic.utils import (
     create_mosaic,
     get_point_values,
 )
-from cogeo_mosaic.backends import auto_backend
+from cogeo_mosaic.backends import MosaicBackend
 
 from cogeo_mosaic_tiler import custom_methods
 from cogeo_mosaic_tiler.custom_cmaps import get_custom_cmap
@@ -98,7 +98,7 @@ def _create(
 
     # Load mosaic if it already exists
     try:
-        with auto_backend(url) as mosaic:
+        with MosaicBackend(url) as mosaic:
             mosaic_def = dict(mosaic.mosaic_def)
 
         return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
@@ -116,7 +116,7 @@ def _create(
             tile_cover_sort=tile_cover_sort,
         )
 
-    with auto_backend(url, mosaic_def=mosaic_def) as mosaic:
+    with MosaicBackend(url, mosaic_def=mosaic_def) as mosaic:
         mosaic.upload()
 
     return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
@@ -139,7 +139,7 @@ def _add(body: str, url: str, mosaicid: str = None) -> Tuple[str, str, str]:
         mosaicid = get_hash(body=body)
         url = url.replace("{mosaicid}", mosaicid)
 
-    with auto_backend(url, mosaic_def=mosaic_definition) as mosaic:
+    with MosaicBackend(url, mosaic_def=mosaic_definition) as mosaic:
         mosaic.upload()
 
     return (
@@ -163,7 +163,7 @@ def _info(url: str = None) -> Tuple[str, str, str]:
     if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         mosaic_def = dict(mosaic.mosaic_def)
 
     bounds = mosaic_def["bounds"]
@@ -216,7 +216,7 @@ def _geojson(url: str = None) -> Tuple[str, str, str]:
     if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         mosaic_def = dict(mosaic.mosaic_def)
 
     if not mosaic_def.get("tiles"):
@@ -249,7 +249,7 @@ def _tilejson(
     if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         mosaic_def = dict(mosaic.mosaic_def)
 
     return get_tilejson(mosaic_def, url, tile_scale, tile_format, **kwargs)
@@ -312,7 +312,7 @@ def _wmts(
     if tile_scale is not None and isinstance(tile_scale, str):
         tile_scale = int(tile_scale)
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         mosaic_def = dict(mosaic.mosaic_def)
 
     kwargs.pop("SERVICE", None)
@@ -364,7 +364,7 @@ def _mvt(
     if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         assets = mosaic.tile(x, y, z)
 
     if not assets:
@@ -491,7 +491,7 @@ def _img(
     if url is None:
         return ("NOK", "text/plain", "Missing 'URL' parameter")
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         assets = mosaic.tile(x, y, z)
 
     if not assets:
@@ -577,7 +577,7 @@ def _point(
     if isinstance(lat, str):
         lat = float(lat)
 
-    with auto_backend(url) as mosaic:
+    with MosaicBackend(url) as mosaic:
         assets = mosaic.point(lng, lat)
 
     if not assets:
