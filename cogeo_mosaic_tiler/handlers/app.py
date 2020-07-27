@@ -461,10 +461,14 @@ def _img(
     if color_map:
         options["colormap"] = cmap.get(color_map)
 
+    # Return asset ids as response header
+    assets_str = json.dumps(assets, separators=(",", ":"))
+    return_kwargs = {"custom_headers": {"X-ASSETS": assets_str}}
     return (
         "OK",
         f"image/{ext}",
         render(rtile, mask, img_format=driver, **options),
+        return_kwargs
     )
 
 

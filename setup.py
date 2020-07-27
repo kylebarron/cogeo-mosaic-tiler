@@ -5,7 +5,8 @@ from setuptools import find_packages, setup
 # Runtime requirements.
 inst_reqs = [
     "cogeo-mosaic>=3.0a1",
-    "lambda-proxy~=5.2",
+    # For custom response headers
+    "lambda-proxy @ git+https://github.com/kylebarron/lambda-proxy@dev#egg=lambda-proxy",
     "rio-color",
     "rio-tiler>=2.0a9",
 ]
