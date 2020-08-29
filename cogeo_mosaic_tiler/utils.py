@@ -1,5 +1,6 @@
 """cogeo-mosaic-tiler: utility functions."""
 
+from typing import Tuple
 from urllib.parse import urlparse
 
 import numpy
