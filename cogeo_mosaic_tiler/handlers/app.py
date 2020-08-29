@@ -14,11 +14,11 @@ from lambda_proxy.proxy import API
 from rasterio.session import AWSSession
 from rio_tiler.colormap import cmap
 from rio_tiler.io import COGReader
+from rio_tiler.mosaic import mosaic_reader
+from rio_tiler.mosaic.methods import defaults
 from rio_tiler.profiles import img_profiles
 from rio_tiler.reader import multi_point
-from rio_tiler.utils import geotiff_options, render, mosaic_cog_tiler
-from rio_tiler.mosaic.methods import defaults
-from rio_tiler.mosaic import mosaic_reader
+from rio_tiler.utils import geotiff_options, mosaic_cog_tiler, render
 
 from cogeo_mosaic import version as mosaic_version
 from cogeo_mosaic.backends import MosaicBackend
