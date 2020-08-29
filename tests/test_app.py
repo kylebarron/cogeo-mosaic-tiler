@@ -741,7 +741,7 @@ def test_API_tilesCustomCmap(backend, app, event):
 
     event["path"] = "/8/53/50.png"
     event["queryStringParameters"] = dict(
-        url="s3://my-bucket/above.json", indexes="1", color_map="custom_above",
+        url="s3://my-bucket/above.json", indexes="1", color_map="above",
     )
     res = app(event, {})
     assert res["statusCode"] == 200
