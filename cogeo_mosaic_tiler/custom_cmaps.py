@@ -1,6 +1,6 @@
 """custom colormaps."""
 
-import re
+from rio_tiler.colormap import cmap
 
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
 above_cmap = {
@@ -16,12 +16,4 @@ above_cmap = {
     10: [29, 0, 250, 255],  # Water
 }
 
-COLOR_MAPS = {"above": above_cmap.copy()}
-
-
-def get_custom_cmap(cname):
-    """Return custom colormap."""
-    if not re.match(r"^custom_", cname):
-        raise Exception("Invalid colormap name")
-    _, name = cname.split("_")
-    return COLOR_MAPS[name]
+cmap.register('above', above_cmap.copy())
