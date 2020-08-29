@@ -13,6 +13,9 @@ import pytest
 from cogeo_mosaic.backends.file import FileBackend
 from cogeo_mosaic.mosaic import MosaicJSON
 
+asset_above = os.path.join(os.path.dirname(__file__), "fixtures", "above_cog.tif")
+above_mosaic_content = MosaicJSON.from_urls([asset_above])
+
 asset1 = os.path.join(os.path.dirname(__file__), "fixtures", "cog1.tif")
 asset2 = os.path.join(os.path.dirname(__file__), "fixtures", "cog2.tif")
 mosaic_content = MosaicJSON.from_urls([asset1, asset2])
@@ -47,7 +50,11 @@ class MosaicMock(FileBackend):
         if mosaic_def is not None:
             self.mosaic_def = mosaic_def
         else:
-            self.mosaic_def = mosaic_content
+            self.mosaic_def = (
+                above_mosaic_content
+                if args[0].endswith("/above.json")
+                else mosaic_content
+            )
 
     def write(self, *args, **kwargs):
         """Write."""
@@ -83,6 +90,7 @@ def testing_env_var(monkeypatch):
     monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", "/tmp/noconfighereeither")
     monkeypatch.setenv("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
     monkeypatch.setenv("MOSAIC_DEF_BUCKET", "my-bucket")
+    monkeypatch.setenv("CACHE_CONTROL", "max-age=3600")
 
 
 @pytest.fixture()
@@ -112,12 +120,7 @@ def test_favicon(app, event):
     event["path"] = "/favicon.ico"
     resp = {
         "body": "",
-        "headers": {
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "GET",
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "text/plain",
-        },
+        "headers": {"Content-Type": "text/plain"},
         "statusCode": 204,
     }
     res = app(event, {})
@@ -135,9 +138,6 @@ def test_add_mosaic(backend, head, app, event):
         mosaicid="b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516"
     )
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
     }
     backend.side_effect = MosaicMock
@@ -153,9 +153,6 @@ def test_add_mosaic(backend, head, app, event):
     backend.reset_mock()
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "text/plain",
     }
     head.return_value = True
@@ -180,9 +177,6 @@ def test_create_mosaic(backend, app, event):
     )
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
     }
 
@@ -214,9 +208,6 @@ def test_create_mosaicPNG(backend, app, event):
     event["queryStringParameters"] = dict(tile_format="png")
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
     }
 
@@ -248,9 +239,6 @@ def test_create_mosaicMVT(backend, app, event):
     event["queryStringParameters"] = dict(tile_format="mvt")
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
     }
 
@@ -277,10 +265,8 @@ def test_info(backend, app, event):
     event["queryStringParameters"] = dict(url="s3://my-bucket/mymosaic.json")
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600",
     }
 
     backend.side_effect = MosaicMock
@@ -323,10 +309,8 @@ def test_info_mosaicid(backend, app, event):
     event["path"] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/info"
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600",
     }
     backend.side_effect = MosaicMock
 
@@ -361,10 +345,8 @@ def test_geojson_mosaicid(backend, app, event):
     event["path"] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/geojson"
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600",
     }
     backend.side_effect = MosaicMock
 
@@ -394,10 +376,8 @@ def test_tilejson(backend, app, event):
     event["path"] = "/tilejson.json"
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600",
     }
     res = app(event, {})
     assert res["statusCode"] == 400
@@ -468,10 +448,8 @@ def test_tilejson_mosaicid(backend, app, event):
     event["queryStringParameters"] = dict(rescale="-1,1")
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600",
     }
     backend.side_effect = MosaicMock
 
@@ -511,10 +489,8 @@ def test_get_mosaic_wmts(backend, app, event):
     )
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/xml",
+        "Cache-Control": "max-age=3600",
     }
     backend.side_effect = MosaicMock
 
@@ -533,10 +509,8 @@ def test_get_mosaic_wmts_mosaicid(backend, app, event):
     event["queryStringParameters"] = dict(tile_scale="2")
 
     headers = {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/xml",
+        "Cache-Control": "max-age=3600",
     }
     backend.side_effect = MosaicMock
 
@@ -559,7 +533,7 @@ def test_get_mosaic_wmts_mosaicid(backend, app, event):
 def test_API_errors(backend, app, event):
     """Test /tiles routes."""
     # missing URL
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     res = app(event, {})
     assert res["statusCode"] == 400
     assert res["body"] == "Missing 'MosaicID or URL' parameter"
@@ -569,7 +543,7 @@ def test_API_errors(backend, app, event):
     backend.side_effect = MosaicMock
 
     # empty assets
-    event["path"] = f"/9/300/182.png"
+    event["path"] = "/9/300/182.png"
     event["queryStringParameters"] = dict(url="s3://my-bucket/mymosaic.json")
     res = app(event, {})
     assert res["statusCode"] == 204
@@ -583,14 +557,15 @@ def test_API_tiles(backend, app, event):
     """Test /tiles routes."""
     backend.side_effect = MosaicMock
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(url="s3://my-bucket/mymosaic.json")
     res = app(event, {})
     assert res["statusCode"] == 200
     assert res["headers"]["Content-Type"] == "image/png"
+    assert res["headers"].get("Cache-Control")
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", pixel_selection="first"
     )
@@ -599,7 +574,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", pixel_selection="highest"
     )
@@ -608,7 +583,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", pixel_selection="lowest"
     )
@@ -617,7 +592,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", pixel_selection="mean"
     )
@@ -626,7 +601,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", pixel_selection="median"
     )
@@ -635,7 +610,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182.png"
+    event["path"] = "/9/150/182.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json",
         rescale="0,10000",
@@ -647,7 +622,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182@2x.png"
+    event["path"] = "/9/150/182@2x.png"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", rescale="0,10000"
     )
@@ -656,7 +631,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/155/182@2x"
+    event["path"] = "/9/155/182@2x"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", rescale="0,10000"
     )
@@ -665,7 +640,7 @@ def test_API_tiles(backend, app, event):
     assert res["headers"]["Content-Type"] == "image/png"
     assert res["body"]
 
-    event["path"] = f"/9/150/182"
+    event["path"] = "/9/150/182"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", rescale="0,10000"
     )
@@ -677,7 +652,7 @@ def test_API_tiles(backend, app, event):
     # Mosaic ID
     event[
         "path"
-    ] = f"/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182.png"
+    ] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182.png"
     event["queryStringParameters"] = dict(rescale="0,10000")
     res = app(event, {})
     assert res["statusCode"] == 200
@@ -686,7 +661,7 @@ def test_API_tiles(backend, app, event):
 
     event[
         "path"
-    ] = f"/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182"
+    ] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182"
     event["queryStringParameters"] = dict(rescale="0,10000")
     res = app(event, {})
     assert res["statusCode"] == 200
@@ -695,7 +670,7 @@ def test_API_tiles(backend, app, event):
 
     event[
         "path"
-    ] = f"/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182@2x.png"
+    ] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182@2x.png"
     event["queryStringParameters"] = dict(rescale="0,10000")
     res = app(event, {})
     assert res["statusCode"] == 200
@@ -704,7 +679,7 @@ def test_API_tiles(backend, app, event):
 
     event[
         "path"
-    ] = f"/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182@2x"
+    ] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182@2x"
     event["queryStringParameters"] = dict(rescale="0,10000")
     res = app(event, {})
     assert res["statusCode"] == 200
@@ -717,12 +692,12 @@ def test_API_MVTtiles(backend, app, event):
     """Test /tiles routes."""
     backend.side_effect = MosaicMock
 
-    event["path"] = f"/9/150/182.pbf"
+    event["path"] = "/9/150/182.pbf"
     event["queryStringParameters"] = {}
     res = app(event, {})
     assert res["statusCode"] == 400
 
-    event["path"] = f"/9/150/182.pbf"
+    event["path"] = "/9/150/182.pbf"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", tile_size="64"
     )
@@ -733,7 +708,7 @@ def test_API_MVTtiles(backend, app, event):
 
     event[
         "path"
-    ] = f"/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182.pbf"
+    ] = "/b99dd7e8cc284c6da4d2899e16b6ff85c8ab97041ae7b459eb67e516/9/150/182.pbf"
     event["queryStringParameters"] = dict(tile_size="64")
     res = app(event, {})
     assert res["statusCode"] == 200
@@ -746,7 +721,7 @@ def test_API_points(backend, app, event):
     """Test /point routes."""
     backend.side_effect = MosaicMock
 
-    event["path"] = f"/point"
+    event["path"] = "/point"
     event["queryStringParameters"] = dict(
         url="s3://my-bucket/mymosaic.json", lng="-73", lat="45"
     )
@@ -757,3 +732,19 @@ def test_API_points(backend, app, event):
     assert body["coordinates"]
     assert body["values"]
     assert len(body["values"]) == 2
+
+
+@patch("cogeo_mosaic_tiler.handlers.app.MosaicBackend")
+def test_API_tilesCustomCmap(backend, app, event):
+    """Test /tiles routes."""
+    backend.side_effect = MosaicMock
+
+    event["path"] = "/8/53/50.png"
+    event["queryStringParameters"] = dict(
+        url="s3://my-bucket/above.json", indexes="1", color_map="custom_above",
+    )
+    res = app(event, {})
+    assert res["statusCode"] == 200
+    assert res["headers"]["Content-Type"] == "image/png"
+    assert res["headers"].get("Cache-Control")
+    assert res["body"]
