@@ -39,6 +39,12 @@ def _postprocess(
     return tile
 
 
+def mosaic_cog_tiler(src_path: str, *args,
+          **kwargs) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    with COGReader(src_path) as cog:
+        return cog.tile(*args, **kwargs)
+
+
 def _get_layer_names(src_dst):
     def _get_name(ix):
         name = src_dst.descriptions[ix - 1]

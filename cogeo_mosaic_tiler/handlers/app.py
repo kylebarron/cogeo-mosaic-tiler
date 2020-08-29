@@ -13,12 +13,12 @@ from boto3.session import Session as boto3_session
 from lambda_proxy.proxy import API
 from rasterio.session import AWSSession
 from rio_tiler.colormap import cmap
-from rio_tiler.io.cogeo import tile as cogeoTiler
+from rio_tiler.io import COGReader
 from rio_tiler.profiles import img_profiles
 from rio_tiler.reader import multi_point
-from rio_tiler.utils import geotiff_options, render
-from rio_tiler_mosaic.methods import defaults
-from rio_tiler_mosaic.mosaic import mosaic_tiler
+from rio_tiler.utils import geotiff_options, render, mosaic_cog_tiler
+from rio_tiler.mosaic.methods import defaults
+from rio_tiler.mosaic import mosaic_reader
 
 from cogeo_mosaic import version as mosaic_version
 from cogeo_mosaic.backends import MosaicBackend
@@ -345,13 +345,13 @@ def _mvt(
         assets = list(reversed(assets))
 
     with rasterio.Env(aws_session):
-        pixsel_method = PIXSEL_METHODS[pixel_selection]
-        tile, mask = mosaic_tiler(
+        pixsel_method = PIXSEL_METHODS.get(pixel_selection, 'first')
+        tile, mask = mosaic_reader(
             assets,
+            mosaic_cog_tiler,
             x,
             y,
             z,
-            cogeoTiler,
             tilesize=tile_size,
             pixel_selection=pixsel_method(),
             resampling_method=resampling_method,
@@ -423,13 +423,13 @@ def _img(
         assets = list(reversed(assets))
 
     with rasterio.Env(aws_session):
-        pixsel_method = PIXSEL_METHODS[pixel_selection]
-        tile, mask = mosaic_tiler(
+        pixsel_method = PIXSEL_METHODS.get(pixel_selection, 'first')
+        tile, mask = mosaic_reader(
             assets,
+            mosaic_cog_tiler,
             x,
             y,
             z,
-            cogeoTiler,
             indexes=indexes,
             tilesize=tilesize,
             pixel_selection=pixsel_method(),
