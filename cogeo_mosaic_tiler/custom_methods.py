@@ -1,7 +1,7 @@
 """custom pixel selection method."""
 
 import numpy
-from rio_tiler_mosaic.methods.base import MosaicMethodBase
+from rio_tiler.mosaic.methods.base import MosaicMethodBase
 
 
 class bidx_stddev(MosaicMethodBase):
