@@ -1,7 +1,5 @@
 """custom colormaps."""
 
-from rio_tiler.colormap import cmap
-
 # colors from https://daac.ornl.gov/ABOVE/guides/Annual_Landcover_ABoVE.html
 above_cmap = {
     1: [58, 102, 24, 255],  # Evergreen Forest
@@ -15,5 +13,3 @@ above_cmap = {
     9: [144, 255, 255, 255],  # Shallows/Littoral
     10: [29, 0, 250, 255],  # Water
 }
-
-cmap.register('above', above_cmap.copy())

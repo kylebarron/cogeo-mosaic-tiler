@@ -23,7 +23,7 @@ from cogeo_mosaic import version as mosaic_version
 from cogeo_mosaic.backends import MosaicBackend
 from cogeo_mosaic.backends.utils import get_hash
 from cogeo_mosaic.mosaic import MosaicJSON
-from cogeo_mosaic_tiler import custom_methods
+from cogeo_mosaic_tiler import custom_cmaps, custom_methods
 from cogeo_mosaic_tiler.ogc import wmts_template
 from cogeo_mosaic_tiler.utils import (
     _aws_head_object,
@@ -32,7 +32,7 @@ from cogeo_mosaic_tiler.utils import (
     mosaic_cog_tiler,
 )
 
-cmap.register("custom_above", custom_cmaps.above_cmap)
+cmap.register("above", custom_cmaps.above_cmap)
 
 session = boto3_session()
 s3_client = session.client("s3")
